@@ -1,0 +1,56 @@
+{% INCLUDE 'overall_header.html' %}
+
+<a name="maincontent"></a>
+
+<h1>{{ lang('ACP_STEMPEL_SETTINGS') }}</h1>
+
+<form name="acp_stempel_refresh_form" method="post" action="{{ U_ACTION }}">
+    <fieldset>
+        <dl>
+            <dt><label for="anszlus_stempel_enabled">Pobierz nowe wartości ze Stempla</label></dt>
+            <dd>
+                <input class="button1" type="submit" id="submit" name="submit" value="Pobierz" />
+            </dd>
+        </dl>
+    </fieldset>
+    <input type="hidden" name="acp_stempel_refresh" value="1">
+    {{ S_FORM_TOKEN }}
+</form>
+
+<form id="acp_board" method="post" action="{{ U_ACTION }}">
+    <fieldset>
+        <dl>
+            <dt><label for="anszlus_stempel_enabled">{{ lang('ACP_STEMPEL_SHOW_PROFILE_LINK') }}</label></dt>
+            <dd>
+                <input type="radio" class="radio" name="anszlus_stempel_enabled" value="1" {% if ANSZLUS_STEMPEL_ENABLED %}checked="checked" {% endif %}/> {{ lang('YES') }} &nbsp;
+                <input type="radio" class="radio" name="anszlus_stempel_enabled" value="0" {% if not ANSZLUS_STEMPEL_ENABLED %}checked="checked" {% endif %}/> {{ lang('NO') }}
+            </dd>
+        </dl>
+
+        <!--         
+        <dl>
+            <dt><label for="anszlus_stempel_enabled">{{ lang('ANSZLUS_STEMPEL_API_KEY') }}</label></dt>
+            <dd>
+                <input type="text" name="anszlus_stempel_country_id" value="{{ ANSZLUS_STEMPEL_API_KEY }}">
+            </dd>
+        </dl> 
+        -->
+
+        <dl>
+            <dt><label for="anszlus_stempel_enabled">{{ lang('ACP_STEMPEL_COUNTRY_ID') }} </label></dt>
+            <dd>
+                <input type="number" name="anszlus_stempel_country_id" value="{{ ANSZLUS_STEMPEL_STEMPEL_ID }}">
+                {% if not STATUS %}BŁĘDNE ID{% endif %}
+            </dd>
+        </dl>
+
+        <p class="submit-buttons">
+            <input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />&nbsp;
+            <input class="button2" type="reset" id="reset" name="reset" value="{{ lang('RESET') }}" />
+        </p>
+
+        {{ S_FORM_TOKEN }}
+    </fieldset>
+</form>
+
+{% INCLUDE 'overall_footer.html' %}

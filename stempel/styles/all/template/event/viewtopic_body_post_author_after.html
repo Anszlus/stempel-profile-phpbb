@@ -1,0 +1,8 @@
+{% if STEMPEL_ENABLE %}
+    {% if postrow.POST_AUTHOR_STEMPEL_ID %}
+        <span class="stempel_dot"> &#x2022; </span>
+        <a href="https://stempel.org.pl/paszport/{{ postrow.POST_AUTHOR_STEMPEL_ID }}" class="stempel_link">
+            <b>Ste<i><span style="color:#FF6600">m</span></i>pel</b>
+        </a>
+    {% endif %}
+{% endif %}

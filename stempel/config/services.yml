@@ -1,0 +1,21 @@
+imports:
+    - { resource: tables.yml }
+
+services:
+    anszlus.stempel.listener:
+        class: anszlus\stempel\event\listener
+        arguments:
+            - '@config'
+            - '@dbal.conn'
+            - '@auth'
+            - '@template'
+            - '@user'
+            - '@cache.driver'
+            - '@request'
+            - '@controller.helper'
+            - '@language'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+            - '%stempel.table%'
+        tags:
+            - { name: event.listener }

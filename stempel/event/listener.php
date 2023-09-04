@@ -137,7 +137,7 @@ class listener implements EventSubscriberInterface
             $stempel_id = $this->db->sql_fetchfield('stempel_id');
             $this->db->sql_freeresult($result);
         } else {
-            $stempel_id = $this->stempel_users[$postrow['POSTER_ID']];
+            $stempel_id = $this->stempel_users[$member['user_id']];
         }
 
         $this->stempel_users[$member['user_id']] = $stempel_id;

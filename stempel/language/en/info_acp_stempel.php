@@ -23,6 +23,9 @@ if (empty($lang) || !is_array($lang)) {
 // in a url you again do not need to specify an order e.g., 'Click %sHERE%s' is fine
 
 $lang = array_merge($lang, [
+    'YES' => 'Tak',
+    'NO' => 'Nie',
+    'SUBMIT' => 'Wyślij',
     'ACP_STEMPEL' => 'Stempel',
     'ACP_STEMPEL_SETTINGS' => 'Ustawienia Stempel',
     'ANSZLUS_STEMPEL_API_KEY' => 'Klucz Api do systemu Stempel',

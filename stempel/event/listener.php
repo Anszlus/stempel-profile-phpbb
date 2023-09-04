@@ -123,7 +123,29 @@ class listener implements EventSubscriberInterface
     {
         return array(
             'core.viewtopic_modify_post_row' => 'viewtopic_modify_postrow',
+            'core.memberlist_view_profile' => 'memberlist_view_profile',
         );
+    }
+
+    public function memberlist_view_profile($event)
+    {
+        $member = $event['member'];
+        $stempel_id = 0;
+        if (!isset($this->stempel_users[$member['user_id']])) {
+            $sql = 'SELECT `stempel_id` FROM ' . $this->stempel_table . ' WHERE user_id = ' . $member['user_id'];
+            $result = $this->db->sql_query($sql);
+            $stempel_id = $this->db->sql_fetchfield('stempel_id');
+            $this->db->sql_freeresult($result);
+        } else {
+            $stempel_id = $this->stempel_users[$postrow['POSTER_ID']];
+        }
+
+        $this->stempel_users[$member['user_id']] = $stempel_id;
+
+        $this->template->assign_vars([
+            'STEMPEL_ENABLE' => $this->config['anszlus_stempel_enabled'],
+            'STEMPEL_USER_ID' => $stempel_id,
+        ]);
     }
 
 }

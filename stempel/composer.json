@@ -3,8 +3,8 @@
     "type": "phpbb-extension",
     "description": "Dodaje odnośnik do profilu w systemie stempel (Polskie mikronacje).",
     "homepage": "https://vnacja.pl",
-    "version": "0.0.2",
-    "time": "2023-09-04",
+    "version": "0.0.4",
+    "time": "2024-07-29",
     "keywords": ["phpbb", "extension", "post"],
     "license": "GPL-2.0-only",
     "authors": [

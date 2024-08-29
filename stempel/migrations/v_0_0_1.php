@@ -3,7 +3,6 @@
 namespace anszlus\stempel\migrations;
 
 class v_0_0_1 extends \phpbb\db\migration\migration
-
 {
 
     public function effectively_installed()

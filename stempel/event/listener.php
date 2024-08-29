@@ -124,6 +124,7 @@ class listener implements EventSubscriberInterface
         return array(
             'core.viewtopic_modify_post_row' => 'viewtopic_modify_postrow',
             'core.memberlist_view_profile' => 'memberlist_view_profile',
+            'core.user_setup' => 'check_new_stempel_users'
         );
     }
 
@@ -146,6 +147,85 @@ class listener implements EventSubscriberInterface
             'STEMPEL_ENABLE' => $this->config['anszlus_stempel_enabled'],
             'STEMPEL_USER_ID' => $stempel_id,
         ]);
+    }
+
+    public function check_new_stempel_users($event)
+    {
+        // sprawdzam czy aktywne
+        if(!$this->config['anszlus_stempel_enabled']) {
+            return false;
+        }
+
+        // sprawdzam date
+        $last_check = $this->config['anszlus_stempel_users_updated_at'];
+        $toilet_time = 10800; // Czas co jaki ma sprawdzać
+        $now = time();
+        if(($last_check + $toilet_time) > $now) {
+            return false;
+        }
+
+        // sprawdzam sid
+        $stempel_country_ccn3 = $this->config['anszlus_stempel_country_id'];
+        if(!$stempel_country_ccn3)
+        {
+            return false;
+        }
+        
+        // pobieram dane
+        $status = $this->updateUsersStempelId($stempel_country_ccn3);
+
+        if(!$status)
+        {
+            return false;
+        }
+
+        $this->config->set('anszlus_stempel_users_updated_at', $now);
+    }
+
+    private function updateUsersStempelId($id)
+    {
+        /** @var string $thanks_table _thanks database table */
+        $stempel_table = $this->stempel_table;
+
+        $url = 'https://stempel.org.pl/api/weryfikacje0.php?kraj=' . $id;
+
+        // Pobierz zawartość JSON z URL
+        $jsonData = file_get_contents($url);
+
+        // Jeśli pobranie danych zakończyło się błędem
+        if ($jsonData == false) {
+            return false;
+        }
+
+        // usuwamy stare wpisy
+        $deleteSql = 'DELETE FROM ' . $stempel_table . ' WHERE 1';
+        $deleteResult = $this->db->sql_query($deleteSql);
+
+        // Dekoduj dane JSON na tablicę lub obiekt PHP
+        $data = json_decode($jsonData, true); // true oznacza dekodowanie do tablicy asocjacyjnej
+
+        // Sprawdź, czy dekodowanie się nie powiodło
+        if ($data == null) {
+            // 'Błąd dekodowania danych JSON.';
+            return false;
+        }
+
+        if ($data['blad']['kod'] !== 200) {
+            // Błędne id kraju
+            return false;
+        }
+
+        $insertData = [];
+        foreach ($data['forum'] as $forumID => $stempelID) {
+            $insertData[] = '(' . $forumID . ', ' . $stempelID . ')';
+        }
+
+        // dodajemy nowe
+        $insertData = implode(', ', $insertData);
+        $insertSql = 'INSERT INTO ' . $stempel_table . ' (`user_id`, `stempel_id`) VALUES ' . $insertData;
+        $insertResult = $this->db->sql_query($insertSql);
+
+        return true;
     }
 
 }

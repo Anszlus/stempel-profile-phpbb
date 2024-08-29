@@ -67,6 +67,9 @@ class acp_stempel_module
 
         }
 
+
+        $stempel_countries = $this->getStempelCountries();
+
         $template->assign_vars([
             'ACP_STEMPEL' => 'Stempel',
             'ANSZLUS_STEMPEL_ENABLED' => $config['anszlus_stempel_enabled'],
@@ -75,8 +78,53 @@ class acp_stempel_module
             'U_ACTION' => $this->u_action,
             'STEMPEL' => $config,
             'STATUS' => $status,
+            'STEMPEL_COUNTRIES' => $stempel_countries
         ]);
 
+    }
+
+    private function getStempelCountries() 
+    {
+        // Ustawienie URL API
+        $stempel_countries_api_url = 'https://stempel.org.pl/api/kraje0.php';
+
+        // Inicjalizacja sesji cURL
+        $ch = curl_init($stempel_countries_api_url);
+
+        // Ustawienie opcji cURL
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Zwracaj wynik zamiast go wyświetlać
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']); // Ustawienie nagłówków
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // Limit czasu w sekundach
+
+        // Pobieranie danych z API
+        $response = curl_exec($ch);
+
+        if ($response === FALSE) {
+            // coś poszło nie tak
+            return [];
+        }
+
+        // Zamknięcie sesji cURL
+        curl_close($ch);
+
+        // Dekodowanie danych JSON
+        $data = json_decode($response, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            // błąd dekodowania JSON
+            return [];
+        }
+
+        if(!isset($data['dane']))
+        {
+            return [];
+        }
+
+        $data['dane'] = array_filter($data['dane'], function($element) {
+            return $element['kraj_stempel'] !== null;
+        });
+
+        return $data['dane'];
     }
 
     private function updateUsersStempelId($id)

@@ -1,10 +1,10 @@
 {
     "name": "anszlus/stempel",
     "type": "phpbb-extension",
-    "description": "Dodaje odnośnik do profilu w systemie stempel (Polskie mikronacje).",
+    "description": "Dodaje odnośnik do profilu oraz wyświetla powiadomienie o nieprzeczytanych wiadomościach w systemie Stempel.",
     "homepage": "https://vnacja.pl",
-    "version": "0.0.4",
-    "time": "2024-07-29",
+    "version": "0.0.5",
+    "time": "2025-08-25",
     "keywords": ["phpbb", "extension", "post"],
     "license": "GPL-2.0-only",
     "authors": [
@@ -18,7 +18,7 @@
         "php": ">=5.3.3"
     },
    "extra": {
-        "display-name": "Stempel profil",
+        "display-name": "Stempel - Paszport Polskich Mikronacji",
         "soft-require": {
             "phpbb/phpbb": ">=3.2.1"
         }

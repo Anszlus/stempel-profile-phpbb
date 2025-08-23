@@ -124,7 +124,8 @@ class listener implements EventSubscriberInterface
         return array(
             'core.viewtopic_modify_post_row' => 'viewtopic_modify_postrow',
             'core.memberlist_view_profile' => 'memberlist_view_profile',
-            'core.user_setup' => 'check_new_stempel_users'
+            'core.user_setup' => 'check_new_stempel_users',
+            'core.page_header' => 'add_stempel_navlink',
         );
     }
 
@@ -226,6 +227,71 @@ class listener implements EventSubscriberInterface
         $insertResult = $this->db->sql_query($insertSql);
 
         return true;
+    }
+
+    public function add_stempel_navlink($event)
+    {
+        // Sprawdź, czy użytkownik ma przypisany stempel_id
+        $user_id = $this->user->data['user_id'];
+        $stempel_id = 0;
+        // Domyślne wartości, jeśli brak stempel_id
+        $stempel_messages_nav_url = 'https://stempel.org.pl/weryfikacja';
+        $stempel_messages_nav_title = 'Zweryfikuj się';
+        $stempel_messages_count = 0;
+
+        $stempel_country_ccn3 = $this->config['anszlus_stempel_country_id'];
+        if ($stempel_country_ccn3) {
+            $stempel_messages_nav_url .= '#kraj' . $stempel_country_ccn3;
+        }
+
+        // Pobieram stempel_id dla użytkownika
+        if (!isset($this->stempel_users[$user_id])) {
+            $sql = 'SELECT stempel_id FROM ' . $this->stempel_table . ' WHERE user_id = ' . (int)$user_id;
+            $result = $this->db->sql_query($sql);
+            $stempel_id = $this->db->sql_fetchfield('stempel_id');
+            $this->db->sql_freeresult($result);
+            $this->stempel_users[$user_id] = $stempel_id;
+        } else {
+            $stempel_id = $this->stempel_users[$user_id];
+        }        
+
+        // Pobieram dane z API
+        $api_url = 'https://stempel.org.pl/api/wiadomosci0.php?sid=' . urlencode($stempel_id);
+
+        if($stempel_id) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $api_url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10); // Limit czasu w sekundach
+            $jsonData = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($jsonData !== false && $httpCode === 200) {
+                $data = json_decode($jsonData, true);
+                if ($data !== null && isset($data['blad']['kod']) && $data['blad']['kod'] === 200) {
+                    $stempel_messages_count = (int)$data['dane']['liczba_wiadomosci'];
+
+                    if($stempel_messages_count > 0) {
+                        $temp_users_word = ($data['dane']['liczba_nadawcow'] > 1) ? 'użytkowników' : 'użytkownika';
+                        $stempel_messages_nav_title = 'Wiadomości ' . $stempel_messages_count . ' od ' . $data['dane']['liczba_nadawcow'] . ' ' . $temp_users_word;
+                    } else {
+                        $stempel_messages_nav_title = 'Wiadomości';
+                    }
+
+                    $stempel_messages_nav_url = 'https://stempel.org.pl/chat/';
+                }
+            }
+        }
+
+        // Przekaż zmienne do szablonu
+        $this->template->assign_vars([
+            'STEMPEL_MESSAGES_ENABLE' => $this->config['anszlus_stempel_enabled'],
+            'STEMPEL_MESSAGES_NAV_URL' => $stempel_messages_nav_url,
+            'STEMPEL_MESSAGES_NAV_TITLE' => $stempel_messages_nav_title,
+            'STEMPEL_MESSAGES_COUNT' => $stempel_messages_count
+        ]);
     }
 
 }

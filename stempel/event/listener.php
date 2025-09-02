@@ -234,14 +234,12 @@ class listener implements EventSubscriberInterface
         // Sprawdź, czy użytkownik ma przypisany stempel_id
         $user_id = $this->user->data['user_id'];
         $stempel_id = 0;
-        // Domyślne wartości, jeśli brak stempel_id
-        $stempel_messages_nav_url = 'https://stempel.org.pl/weryfikacja';
-        $stempel_messages_nav_title = 'Zweryfikuj się';
-        $stempel_messages_count = 0;
+        $notifications = [];
 
         $stempel_country_ccn3 = $this->config['anszlus_stempel_country_id'];
-        if ($stempel_country_ccn3) {
-            $stempel_messages_nav_url .= '#kraj' . $stempel_country_ccn3;
+        if (!$stempel_country_ccn3) {
+            // teoretycznie niepowinno się zdarzyć
+            $stempel_country_ccn3 = 0;
         }
 
         // Pobieram stempel_id dla użytkownika
@@ -253,10 +251,10 @@ class listener implements EventSubscriberInterface
             $this->stempel_users[$user_id] = $stempel_id;
         } else {
             $stempel_id = $this->stempel_users[$user_id];
-        }        
+        }
 
         // Pobieram dane z API
-        $api_url = 'https://stempel.org.pl/api/wiadomosci0.php?sid=' . urlencode($stempel_id);
+        $api_url = 'https://stempel.org.pl/api/powiadomienia.php?sid=' . urlencode($stempel_id) . '$cid=' . urlencode($stempel_country_ccn3);
 
         if($stempel_id) {
             $ch = curl_init();
@@ -269,29 +267,28 @@ class listener implements EventSubscriberInterface
             curl_close($ch);
 
             if ($jsonData !== false && $httpCode === 200) {
-                $data = json_decode($jsonData, true);
-                if ($data !== null && isset($data['blad']['kod']) && $data['blad']['kod'] === 200) {
-                    $stempel_messages_count = (int)$data['dane']['liczba_wiadomosci'];
-
-                    if($stempel_messages_count > 0) {
-                        $temp_users_word = ($data['dane']['liczba_nadawcow'] > 1) ? 'użytkowników' : 'użytkownika';
-                        $stempel_messages_nav_title = 'Wiadomości ' . $stempel_messages_count . ' od ' . $data['dane']['liczba_nadawcow'] . ' ' . $temp_users_word;
-                    } else {
-                        $stempel_messages_nav_title = 'Wiadomości';
-                    }
-
-                    $stempel_messages_nav_url = 'https://stempel.org.pl/chat/';
-                }
+                $notifications = (array) json_decode($this->decode_notifications($jsonData, $this->config['anszlus_stempel_notification_api_key']));
             }
         }
 
         // Przekaż zmienne do szablonu
         $this->template->assign_vars([
-            'STEMPEL_MESSAGES_ENABLE' => $this->config['anszlus_stempel_enabled'],
-            'STEMPEL_MESSAGES_NAV_URL' => $stempel_messages_nav_url,
-            'STEMPEL_MESSAGES_NAV_TITLE' => $stempel_messages_nav_title,
-            'STEMPEL_MESSAGES_COUNT' => $stempel_messages_count
+            'STEMPEL_NOTIFICATION_ENABLED' => $this->config['anszlus_stempel_notification_enabled'],
+            'STEMPEL_NOTIFICATION_URL' => 'https://stempel.org.pl/powiadomienia/',
+            'STEMPEL_CHAT_URL' => 'https://stempel.org.pl/chat/',
+            'STEMPEL_NOTIFICATIONS' => $notifications,
+            'STEMPEL_NOTIFICATIONS_COUNT' => count($notifications)
         ]);
+    }
+
+    private function decode_notifications($coded_info, $secret_key)
+    {
+        $coded_info = base64_decode($coded_info);
+        $ivlen = openssl_cipher_iv_length('aes-256-cbc');
+        $iv = substr($coded_info, 0, $ivlen);
+        $szyfrowany_tekst = substr($coded_info, $ivlen);
+        $tekst = openssl_decrypt($szyfrowany_tekst, 'aes-256-cbc', $secret_key, 0, $iv);
+        return $tekst;
     }
 
 }

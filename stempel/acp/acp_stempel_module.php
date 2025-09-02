@@ -46,7 +46,8 @@ class acp_stempel_module
                 trigger_error($language->lang('ACP_STEMPEL_SETTINGS_REFRESH_SAVED') . adm_back_link($this->u_action));
             } else {
                 $config->set('anszlus_stempel_enabled', $request->variable('anszlus_stempel_enabled', 0));
-                // $config->set('anszlus_stempel_api_key', $request->variable('anszlus_stempel_api_key', 0));
+                $config->set('anszlus_stempel_notification_enabled', $request->variable('anszlus_stempel_notification_enabled', 0));
+                $config->set('anszlus_stempel_notification_api_key', $request->variable('anszlus_stempel_notification_api_key', ""));
 
                 $oldConfigCountryId = $config['anszlus_stempel_country_id'];
                 $newConfigCountryId = $request->variable('anszlus_stempel_country_id', 0);
@@ -74,6 +75,8 @@ class acp_stempel_module
             'ACP_STEMPEL' => 'Stempel',
             'ANSZLUS_STEMPEL_ENABLED' => $config['anszlus_stempel_enabled'],
             'ANSZLUS_STEMPEL_API_KEY' => $config['anszlus_stempel_api_key'],
+            'ANSZLUS_STEMPEL_NOTIFICATION_ENABLED' => $config['anszlus_stempel_notification_enabled'],
+            'ANSZLUS_STEMPEL_NOTIFICATION_API_KEY' => $config['anszlus_stempel_notification_api_key'],
             'ANSZLUS_STEMPEL_STEMPEL_ID' => $config['anszlus_stempel_country_id'],
             'U_ACTION' => $this->u_action,
             'STEMPEL' => $config,

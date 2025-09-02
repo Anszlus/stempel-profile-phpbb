@@ -1,10 +1,10 @@
 {
     "name": "anszlus/stempel",
     "type": "phpbb-extension",
-    "description": "Dodaje odnośnik do profilu oraz wyświetla powiadomienie o nieprzeczytanych wiadomościach w systemie Stempel.",
+    "description": "Dodaje odnośnik do profilu oraz wyświetla powiadomienie z systemu MUK w Stemplu.",
     "homepage": "https://vnacja.pl",
-    "version": "0.0.5",
-    "time": "2025-08-25",
+    "version": "0.0.6",
+    "time": "2025-09-02",
     "keywords": ["phpbb", "extension", "post"],
     "license": "GPL-2.0-only",
     "authors": [

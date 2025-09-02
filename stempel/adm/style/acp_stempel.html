@@ -33,14 +33,22 @@
             </dd>
         </dl>
 
-        <!--         
         <dl>
-            <dt><label for="anszlus_stempel_enabled">{{ lang('ANSZLUS_STEMPEL_API_KEY') }}</label></dt>
+            <dt><label for="anszlus_stempel_notification_enabled">{{ lang('ACP_STEMPEL_SHOW_NOTIFICATIONS') }}</label></dt>
             <dd>
-                <input type="text" name="anszlus_stempel_country_id" value="{{ ANSZLUS_STEMPEL_API_KEY }}">
+                <input type="radio" class="radio" name="anszlus_stempel_notification_enabled" value="1" {% if ANSZLUS_STEMPEL_NOTIFICATION_ENABLED
+                    %}checked="checked" {% endif %} /> {{ lang('YES') }} &nbsp;
+                <input type="radio" class="radio" name="anszlus_stempel_notification_enabled" value="0" {% if not
+                    ANSZLUS_STEMPEL_NOTIFICATION_ENABLED %}checked="checked" {% endif %} /> {{ lang('NO') }}
+            </dd>
+        </dl>
+        
+        <dl>
+            <dt><label for="anszlus_stempel_enabled">{{ lang('ANSZLUS_STEMPEL_NOTIFICATION_API_KEY') }}</label></dt>
+            <dd>
+                <input type="text" name="anszlus_stempel_notification_api_key" value="{{ ANSZLUS_STEMPEL_NOTIFICATION_API_KEY }}">
             </dd>
         </dl> 
-        -->
 
         <dl>
             <dt>

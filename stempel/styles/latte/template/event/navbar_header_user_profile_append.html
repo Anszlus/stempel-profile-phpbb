@@ -1,7 +1,8 @@
 {% if STEMPEL_NOTIFICATION_ENABLED %}
+<!-- LATTE -->
 <li
     id="stempel_dropdown"
-    class="tab stempel_messages {% if STEMPEL_MESSAGES_COUNT > 0 %}non-zero{% endif %} dropdown-container"
+    class="tab stempel_messages {% if STEMPEL_NOTIFICATIONS_COUNT > 0 %}non-zero{% endif %} dropdown-container"
     data-skip-responsive="true"
     data-select="stempel"
     role="menu"
@@ -40,16 +41,39 @@
                 </span>
             </div>
             <ul>
-                <!-- {% for notification in STEMPEL_NOTIFICATIONS %}
-                        <li class="notification-item">
-                            <a href="{{ notification.U_VIEW }}">{{ notification.MESSAGE }}</a>
-                        </li>
-                    {% else %}
-                        <li class="notification-none">{{ lang('NO_STEMPEL_NOTIFICATIONS') }}</li>
-                    {% endfor %} -->
-                <li class="notification-none">
-                    <a href="#">Nie masz powiadomień</a>
-                </li>
+                {% for notification in STEMPEL_NOTIFICATIONS %}
+                    <li class="dropdown-notification stempel-notification">
+                        <a class="notification-block" href="{{ notification.URL }}" target="_blank">
+                            {{ notification.AVATAR }}			
+                            <div class="notification_text">
+                                <p class="notification-title">
+                                    {{ notification.FORMATTED_TITLE }}
+                                </p>
+                                <p class="notification-reference">
+                                    {{ notification.REFERENCE }}
+                                </p>																	
+                                <div class="notify-footer">
+                                    <div class="country">
+                                        <img class="flag_global" 
+                                            style="height: 14px !important;" 
+                                            src="{{ notification.COUNTRY_FLAG }}"
+                                            alt="{{ notification.COUNTRY_NAME }}">
+                                        <span>
+                                            {{ notification.COUNTRY_NAME }}
+                                        </span>
+                                    </div>
+                                    <div class="stempel-notification-time" data-timestamp="{{ notification.TIMESTAMP }}">
+                                        {{ notification.TIMESTAMP|date("Y-m-d H:i") }}
+                                    </div>
+                                </div>
+                            </div>
+					    </a>									
+                    </li>
+                {% else %}
+                    <li class="notification-none">
+                        <a href="#">Nie masz powiadomień</a>
+                    </li>
+                {% endfor %}
             </ul>
             <div class="footer">
                 <a href="{{ STEMPEL_NOTIFICATION_URL }}">
@@ -98,5 +122,65 @@
         padding-bottom: 1px;
         pointer-events: none;
     }
+
+    li.stempel-notification img.avatar {
+        float: left;
+        max-height: 50px;
+        max-width: 50px;
+        aspect-ratio: 1;
+        object-fit: contain;
+        filter: drop-shadow(0 0 0.75rem #b0b0b0);
+    }
+
+    li.stempel-notification p {
+        margin-bottom: 4px;
+        font-size: 11px;
+    }
+
+    li.stempel-notification p.notification-reference {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .stempel-notification .notification_text > .notify-footer {
+        font-size: 10px;
+        display:flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .stempel-notification .notification_text > .notify-footer > .country {
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+        align-items: center;
+        gap: 4px;
+        flex: 1;
+        color: #252424;
+    }
+
+    .stempel-notification .notification_text > .notify-footer > .stempel-notification-time {
+        color: #757575;
+        text-align: right;
+        flex: 1;
+    }
 </style>
+
+<script>
+    function stempelTimeAgo(timestamp) {
+        const diff = Math.floor(Date.now() / 1000) - timestamp;
+
+        if (diff < 60) return "przed chwilą";
+        if (diff < 3600) return Math.floor(diff / 60) + " min temu";
+        if (diff < 86400) return Math.floor(diff / 3600) + " godz temu";
+        return Math.floor(diff / 86400) + " dni temu";
+    }
+
+    document.querySelectorAll(".stempel-notification-time").forEach(el => {
+        const ts = parseInt(el.dataset.timestamp, 10);
+        el.textContent = stempelTimeAgo(ts);
+    });
+</script>
 {% endif %}

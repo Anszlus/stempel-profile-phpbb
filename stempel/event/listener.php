@@ -231,6 +231,10 @@ class listener implements EventSubscriberInterface
 
     public function add_stempel_navlink($event)
     {
+
+        if(!$this->config['anszlus_stempel_notification_enabled'] || empty($this->config['anszlus_stempel_notification_api_key'])) {
+            return;
+        }
         // Sprawdź, czy użytkownik ma przypisany stempel_id
         $user_id = $this->user->data['user_id'];
         $stempel_id = 0;
@@ -254,20 +258,40 @@ class listener implements EventSubscriberInterface
         }
 
         // Pobieram dane z API
-        $api_url = 'https://stempel.org.pl/api/powiadomienia.php?sid=' . urlencode($stempel_id) . '$cid=' . urlencode($stempel_country_ccn3);
-
+        
         if($stempel_id) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $api_url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10); // Limit czasu w sekundach
-            $jsonData = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            // Klucz cache zależny od usera
+            $cache_key = 'stempel_notifications_' . $user_id;
+            // Próbuj pobrać z cache
+            $notifications = $this->cache->get($cache_key);
 
-            if ($jsonData !== false && $httpCode === 200) {
-                $notifications = (array) json_decode($this->decode_notifications($jsonData, $this->config['anszlus_stempel_notification_api_key']));
+            if ($notifications === false) {
+                $api_url = 'https://stempel.org.pl/api/powiadomienia.php?sid='
+                    . urlencode($stempel_id)
+                    . '&cid=' . urlencode($stempel_country_ccn3);
+
+                // @file_get_contents tłumi ewentualne warningi
+                $jsonData = @file_get_contents($api_url);
+
+                // Domyślnie HTTP code = 0 (nie udało się połączyć)
+                $httpCode = 0;
+                if (isset($http_response_header) && preg_match('{HTTP/\S+ (\d{3})}', $http_response_header[0], $m)) {
+                    $httpCode = (int)$m[1];
+                }
+
+                // Dekodowanie tylko jeśli wszystko OK
+                if ($jsonData !== false && $httpCode === 200) {
+                    $notifications = (array) json_decode(
+                        $this->decode_notifications($jsonData, $this->config['anszlus_stempel_notification_api_key']),
+                        true
+                    );
+                } else {
+                    $notifications = []; // brak danych lub błąd połączenia
+                }
+
+
+                // Zapisz do cache na np. 10 sekund
+                $this->cache->put($cache_key, $notifications, 10);
             }
         }
 
@@ -277,7 +301,7 @@ class listener implements EventSubscriberInterface
             'STEMPEL_NOTIFICATION_URL' => 'https://stempel.org.pl/powiadomienia/',
             'STEMPEL_CHAT_URL' => 'https://stempel.org.pl/chat/',
             'STEMPEL_NOTIFICATIONS' => $notifications,
-            'STEMPEL_NOTIFICATIONS_COUNT' => count($notifications)
+            'STEMPEL_NOTIFICATIONS_COUNT' => ($notifications) ? count($notifications) : 0
         ]);
     }
 

@@ -22,7 +22,9 @@ services:
     anszlus.stempel.controller.stempel_controller:
         class: anszlus\stempel\controller\stempel_controller
         arguments:
+            - '@config'
             - '@controller.helper'
             - '@request'
             - '@dbal.conn'
+            - '@notification_manager'
             - '%core.table_prefix%'

@@ -4,8 +4,11 @@ namespace anszlus\stempel\controller;
 
 class stempel_controller
 {
+    /** @var \phpbb\config\config */
+    protected $config;
+
     /** @var \phpbb\controller\helper */
-    protected $controller_helper;
+    protected $helper;
 
     /** @var \phpbb\request\request_interface */
     protected $request;
@@ -13,23 +16,46 @@ class stempel_controller
     /** @var \phpbb\db\driver\driver_interface */
     protected $db;
 
+    /** @var \phpbb\notification\manager */
+    protected $notifications;
+
     protected $table_prefix;
 
     public function __construct(
+        \phpbb\config\config $config,
         \phpbb\controller\helper $helper,
         \phpbb\request\request_interface $request,
         \phpbb\db\driver\driver_interface $db,
+        \phpbb\notification\manager $notifications,
         $table_prefix
     ) {
+        $this->config = $config;
         $this->helper = $helper;
         $this->request = $request;
         $this->db = $db;
+        $this->notifications = $notifications;
         $this->table_prefix = $table_prefix;
     }
 
+    // Zwraca dane jako json
     private function json_response($data) {
+        header('Access-Control-Allow-Origin: *');
+        
         $response = new \phpbb\json_response();
         $response->send($data);
+        exit();
+    }
+
+    // Zwraca dane dla MUK
+    private function muk_response($secret_data, $secret_key)
+    {
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        $data_to_encode = json_encode($secret_data);
+
+        $encoded_data = $this->muk_encode($data_to_encode, $secret_key);
+        echo $encoded_data;
         exit();
     }
 
@@ -119,9 +145,9 @@ class stempel_controller
 
     /**
      * Oczekiwany format 
-     * /stempel/integracja-ism?data=2025-09-06
+     * /stempel/integracja-nowiny
      * Dane tylko dla kategorii
-     * /stempel/integracja-ism?data=2025-09-06&subcategory_id=512
+     * /stempel/integracja-nowiny?limit=3
      */
     public function integracja_nowiny()
     {
@@ -186,8 +212,54 @@ class stempel_controller
         $this->json_response($zwracane_dane);
     }
 
-    
+    /**
+     * Oczekiwany format 
+     * /stempel/integracja-muk?uid=2
+     */
+    public function integracja_muk()
+    {
+        $secret_key = $this->config['anszlus_stempel_notification_enabled'] ?? '';
+        // Oczekuję id użytkownika na forum
+        $uid = (int) $this->request->variable('uid', 0);
 
+        $return_data = [];
+        $return_data['count'] = 0;
+        $return_data['notifications'] = [];
+
+        // jeśli nie wybrano użytkownika, zwracam puste dane
+        if($uid <= 0) {
+            $this->muk_response($return_data, $secret_key);
+        }
+
+        // Pobieram powiadomienia dla uzytkownika o uid
+        $notification = $this->notifications->load_notifications('notification.method.board', [
+            'user_id' => $uid,
+        ]);
+
+        $return_notifications = [];
+        foreach ($notification['notifications'] as $notify) {
+            if($notify->notification_read == 1) continue;
+
+            $notify_arr = (array) $notify->prepare_for_display();
+            $notify_arr['TIMESTAMP'] = $notify->notification_time;
+            
+            $return_notifications[] = $notify_arr;
+        }
+
+        $return_data['count'] = count($return_notifications);
+        $return_data['notifications'] = $return_notifications;
+
+        $this->muk_response($return_data, $secret_key);
+    }
+
+    private function muk_encode($text, $secret_key) {
+        $ivlen = openssl_cipher_iv_length('aes-256-cbc');
+        $iv = openssl_random_pseudo_bytes($ivlen);
+        $szyfrowany_tekst = openssl_encrypt($text, 'aes-256-cbc', $secret_key, 0, $iv);
+        $szyfrowana_informacja = base64_encode($iv . $szyfrowany_tekst);
+        return $szyfrowana_informacja;
+    }
+    
     // Sprawdza poprawność daty
     public function checkValidDate($date) {
         $d = \DateTime::createFromFormat('Y-m-d', $date);

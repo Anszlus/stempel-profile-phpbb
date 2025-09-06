@@ -7,3 +7,8 @@ anszlus_stempel_integracja_nowiny:
     path: /stempel/integracja-nowiny
     defaults:
         _controller: anszlus.stempel.controller.stempel_controller:integracja_nowiny
+
+anszlus_stempel_integracja_muk:
+    path: /stempel/integracja-muk
+    defaults:
+        _controller: anszlus.stempel.controller.stempel_controller:integracja_muk

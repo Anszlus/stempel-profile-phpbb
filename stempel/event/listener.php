@@ -282,7 +282,7 @@ class listener implements EventSubscriberInterface
                 // Dekodowanie tylko jeśli wszystko OK
                 if ($jsonData !== false && $httpCode === 200) {
                     $notifications = (array) json_decode(
-                        $this->decode_notifications($jsonData, $this->config['anszlus_stempel_notification_api_key']),
+                        $this->muk_decode($jsonData, $this->config['anszlus_stempel_notification_api_key']),
                         true
                     );
                 } else {
@@ -305,7 +305,7 @@ class listener implements EventSubscriberInterface
         ]);
     }
 
-    private function decode_notifications($coded_info, $secret_key)
+    private function muk_decode($coded_info, $secret_key)
     {
         $coded_info = base64_decode($coded_info);
         $ivlen = openssl_cipher_iv_length('aes-256-cbc');

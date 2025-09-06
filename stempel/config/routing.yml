@@ -1,0 +1,9 @@
+anszlus_stempel_integracja_ism:
+    path: /stempel/integracja-ism
+    defaults:
+        _controller: anszlus.stempel.controller.stempel_controller:integracja_ism
+
+anszlus_stempel_integracja_nowiny:
+    path: /stempel/integracja-nowiny
+    defaults:
+        _controller: anszlus.stempel.controller.stempel_controller:integracja_nowiny

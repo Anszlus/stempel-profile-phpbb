@@ -19,3 +19,10 @@ services:
             - '%stempel.table%'
         tags:
             - { name: event.listener }
+    anszlus.stempel.controller.stempel_controller:
+        class: anszlus\stempel\controller\stempel_controller
+        arguments:
+            - '@controller.helper'
+            - '@request'
+            - '@dbal.conn'
+            - '%core.table_prefix%'

@@ -12,3 +12,8 @@ anszlus_stempel_integracja_muk:
     path: /stempel/integracja-muk
     defaults:
         _controller: anszlus.stempel.controller.stempel_controller:integracja_muk
+
+anszlus_stempel_verification:
+    path: /stempel/weryfikacja
+    defaults:
+        _controller: anszlus.stempel.controller.stempel_controller:stempel_verification

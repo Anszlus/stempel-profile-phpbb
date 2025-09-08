@@ -34,4 +34,5 @@ $lang = array_merge($lang, [
     'ACP_STEMPEL_SHOW_PROFILE_LINK' => 'Czy wyświetlać link do profilu stempel?',
     'ACP_STEMPEL_SETTINGS_SAVED' => 'Zapisano ustawienia stempel',
     'ACP_STEMPEL_SETTINGS_REFRESH_SAVED' => 'Pomyślnie zaktualizowane paszporty',
+    'ANSZLUS_STEMPEL_VERIFICATION_API_KEY' => 'Klucz API do weryfikacji uzytkowników. Możesz poprosić o niego na forum Leocji.'
 ]);

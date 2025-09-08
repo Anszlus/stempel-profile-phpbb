@@ -17,14 +17,25 @@ services:
             - '%core.root_path%'
             - '%core.php_ext%'
             - '%stempel.table%'
+            - '@anszlus.stempel.service'
         tags:
             - { name: event.listener }
     anszlus.stempel.controller.stempel_controller:
         class: anszlus\stempel\controller\stempel_controller
         arguments:
             - '@config'
+            - '@user'
             - '@controller.helper'
             - '@request'
             - '@dbal.conn'
             - '@notification_manager'
+            - '@template'
             - '%core.table_prefix%'
+            - '@anszlus.stempel.service'
+    
+    anszlus.stempel.service:
+        class: anszlus\stempel\service\stempel_service
+        arguments:
+            - '@config'
+            - '@dbal.conn'
+            - '%stempel.table%'

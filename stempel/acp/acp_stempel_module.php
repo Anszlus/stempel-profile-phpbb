@@ -30,6 +30,9 @@ class acp_stempel_module
         /** @var \phpbb\db\driver\driver_interface $db DBAL object */
         $db = $phpbb_container->get('dbal.conn');
 
+        /** @var \anszlus\stempel\service\stempel_service $stempel_service */
+        $stempel_service = $phpbb_container->get('anszlus.stempel.service');
+
         $this->tpl_name = 'acp_stempel';
         $this->page_title = 'Stempel';
 
@@ -42,12 +45,13 @@ class acp_stempel_module
             }
 
             if ($request->variable('acp_stempel_refresh', 0) == 1) {
-                $status = $this->updateUsersStempelId($config['anszlus_stempel_country_id']);
+                $status = $stempel_service->checkNewVerifiedStempelUsers(true);
                 trigger_error($language->lang('ACP_STEMPEL_SETTINGS_REFRESH_SAVED') . adm_back_link($this->u_action));
             } else {
                 $config->set('anszlus_stempel_enabled', $request->variable('anszlus_stempel_enabled', 0));
                 $config->set('anszlus_stempel_notification_enabled', $request->variable('anszlus_stempel_notification_enabled', 0));
                 $config->set('anszlus_stempel_notification_api_key', $request->variable('anszlus_stempel_notification_api_key', ""));
+                $config->set('anszlus_stempel_verification_api_key', $request->variable('anszlus_stempel_verification_api_key', ""));
 
                 $oldConfigCountryId = $config['anszlus_stempel_country_id'];
                 $newConfigCountryId = $request->variable('anszlus_stempel_country_id', 0);
@@ -55,11 +59,11 @@ class acp_stempel_module
                 // Jeśli zmieniono ID kraju, pobierz nowe wartości
                 if ($oldConfigCountryId !== $newConfigCountryId) {
                     // Pobiera dane z Api stempla i zapisuje w bazie
-                    $status = $this->updateUsersStempelId($newConfigCountryId);
+                    $status = $stempel_service->getNewVerifiedStempelUsers($newConfigCountryId);
                     if ($status) {
                         $config->set('anszlus_stempel_country_id', $newConfigCountryId);
                     } else {
-                        $status = $this->updateUsersStempelId($oldConfigCountryId);
+                        $status = $stempel_service->getNewVerifiedStempelUsers($oldConfigCountryId);
                     }
                 }
 
@@ -69,7 +73,7 @@ class acp_stempel_module
         }
 
 
-        $stempel_countries = $this->getStempelCountries();
+        $stempel_countries = $stempel_service->getStempelCountries();
 
         $template->assign_vars([
             'ACP_STEMPEL' => 'Stempel',
@@ -77,6 +81,7 @@ class acp_stempel_module
             'ANSZLUS_STEMPEL_API_KEY' => $config['anszlus_stempel_api_key'],
             'ANSZLUS_STEMPEL_NOTIFICATION_ENABLED' => $config['anszlus_stempel_notification_enabled'],
             'ANSZLUS_STEMPEL_NOTIFICATION_API_KEY' => $config['anszlus_stempel_notification_api_key'],
+            'ANSZLUS_STEMPEL_VERIFICATION_API_KEY' => $config['anszlus_stempel_verification_api_key'],
             'ANSZLUS_STEMPEL_STEMPEL_ID' => $config['anszlus_stempel_country_id'],
             'U_ACTION' => $this->u_action,
             'STEMPEL' => $config,
@@ -86,99 +91,5 @@ class acp_stempel_module
 
     }
 
-    private function getStempelCountries() 
-    {
-        // Ustawienie URL API
-        $stempel_countries_api_url = 'https://stempel.org.pl/api/kraje0.php';
-
-        // Inicjalizacja sesji cURL
-        $ch = curl_init($stempel_countries_api_url);
-
-        // Ustawienie opcji cURL
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Zwracaj wynik zamiast go wyświetlać
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']); // Ustawienie nagłówków
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // Limit czasu w sekundach
-
-        // Pobieranie danych z API
-        $response = curl_exec($ch);
-
-        if ($response === FALSE) {
-            // coś poszło nie tak
-            return [];
-        }
-
-        // Zamknięcie sesji cURL
-        curl_close($ch);
-
-        // Dekodowanie danych JSON
-        $data = json_decode($response, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            // błąd dekodowania JSON
-            return [];
-        }
-
-        if(!isset($data['dane']))
-        {
-            return [];
-        }
-
-        $data['dane'] = array_filter($data['dane'], function($element) {
-            return $element['kraj_stempel'] !== null;
-        });
-
-        return $data['dane'];
-    }
-
-    private function updateUsersStempelId($id)
-    {
-        global $phpbb_container;
-
-        /** @var \phpbb\db\driver\driver_interface $db DBAL object */
-        $db = $phpbb_container->get('dbal.conn');
-
-        /** @var string $thanks_table _thanks database table */
-        $stempel_table = $phpbb_container->getParameter('stempel.table');
-
-        $url = 'https://stempel.org.pl/api/weryfikacje0.php?kraj=' . $id;
-
-        // Pobierz zawartość JSON z URL
-        $jsonData = file_get_contents($url);
-
-        // Jeśli pobranie danych zakończyło się błędem
-        if ($jsonData == false) {
-            return false;
-        }
-
-        // usuwamy stare wpisy
-        $deleteSql = 'DELETE FROM ' . $stempel_table . ' WHERE 1';
-        $deleteResult = $db->sql_query($deleteSql);
-
-        // Dekoduj dane JSON na tablicę lub obiekt PHP
-        $data = json_decode($jsonData, true); // true oznacza dekodowanie do tablicy asocjacyjnej
-
-        // Sprawdź, czy dekodowanie się nie powiodło
-        if ($data == null) {
-            // 'Błąd dekodowania danych JSON.';
-            return false;
-        }
-
-        if ($data['blad']['kod'] !== 200) {
-            // Błędne id kraju
-            return false;
-        }
-        // Możesz teraz użyć $data do dostępu do otrzymanych danych
-
-        $insertData = [];
-        foreach ($data['forum'] as $forumID => $stempelID) {
-            $insertData[] = '(' . $forumID . ', ' . $stempelID . ')';
-        }
-
-        // dodajemy nowe
-        $insertData = implode(', ', $insertData);
-        $insertSql = 'INSERT INTO ' . $stempel_table . ' (`user_id`, `stempel_id`) VALUES ' . $insertData;
-        $insertResult = $db->sql_query($insertSql);
-
-        return true;
-    }
+    
 }

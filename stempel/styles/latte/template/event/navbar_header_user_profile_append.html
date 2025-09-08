@@ -1,89 +1,115 @@
 {% if STEMPEL_NOTIFICATION_ENABLED %}
 <!-- LATTE -->
-<li
-    id="stempel_dropdown"
-    class="tab stempel_messages {% if STEMPEL_NOTIFICATIONS_COUNT > 0 %}non-zero{% endif %} dropdown-container"
-    data-skip-responsive="true"
-    data-select="stempel"
-    role="menu"
-    data-responsive-index="-1">
-    <a
-        href="{{ STEMPEL_NOTIFICATION_URL }}"
-        id="stempel_messages_button"
-        class="nav-link dropdown-trigger dropdown-toggle"
-        title="Powiadomienia Stempel"
-        role="button"
-        aria-haspopup="true">
-        <svg
-            viewBox="0 0 512 512"
-            height="20"
-            width="20"
-            xmlns="http://www.w3.org/2000/svg">
-            <path
-                d="M369.237 105.372c20.245 0 35.187 6.615 44.82 19.84 9.634 13.224 14.453 31.76 14.453 55.596 0 11.758-1.96 32.003-5.879 60.74-4.244 26.778-6.368 47.188-6.368 61.23 0 8.491 2.449 12.735 7.346 12.735 8.492 0 16.33-12.9 23.515-38.696l26.942 7.839c-2.284 10.776-6.614 22.04-12.982 33.798-6.368 11.758-14.78 21.799-25.232 30.122-10.451 8.324-22.534 12.49-36.243 12.49-17.308 0-29.309-4.573-36.005-13.718-6.696-9.145-10.078-23.022-10.078-41.637 0-14.695 2.285-39.677 6.857-74.95l3.184-28.655c1.47-13.55 2.202-23.926 2.202-31.104 0-7.51-.978-12.817-2.937-15.919-1.96-3.102-5.55-4.655-10.776-4.655-9.47 0-19.35 9.063-29.637 27.185-10.287 18.122-18.857 40.413-25.755 66.862-6.898 26.449-10.287 50.942-10.287 73.475 0 12.736.485 25.307 1.47 37.718h-63.192c-.978-9.145-1.47-20.081-1.47-32.82 0-19.268 1.06-39.514 3.183-60.74l3.673-36.737c2.938-26.453 4.405-44.574 4.405-54.372 0-7.51-1.06-12.818-3.184-15.92-2.124-3.102-5.636-4.654-10.534-4.654-9.47 0-19.596 9.305-30.368 27.92-10.772 18.614-19.756 41.308-26.942 68.082-7.185 26.774-10.776 51.435-10.776 73.965 0 7.838.486 19.596 1.471 35.272H91.495c-.978-9.144-1.47-16.983-1.47-23.515 0-10.451 1.142-25.755 3.434-45.799l7.353-59.027 3.919-32.085c1.96-15.513 2.937-26.042 2.937-31.596 0-8.492-2.284-12.736-6.856-12.736-8.492 0-16.33 12.9-23.516 38.696l-26.941-7.839c4.244-19.596 11.51-37.228 21.798-52.901 10.287-15.674 24.896-23.516 43.84-23.516 12.081 0 21.962 3.434 29.636 10.287 7.674 6.853 11.511 18.29 11.511 34.288 0 6.203-.373 12-1.224 17.394l-1.717 12h.485c10.451-27.106 23.187-46.21 38.207-57.31 15.02-11.1 30.697-16.655 47.023-16.655 15.677 0 27.595 4.897 35.758 14.695 8.163 9.798 12.243 23.676 12.243 41.637 0 7.51-.325 13.389-.978 17.633h.485c19.268-49.307 46.534-73.965 81.803-73.965"></path>
-        </svg>
-    </a>
-    <strong>
-        <span class="counter">{{ STEMPEL_NOTIFICATIONS_COUNT }}</span>
-        <span class="arrow"></span>
-    </strong>
+    {% if STEMPEL_USER_VERIFIED %}
+        <li
+            id="stempel_dropdown"
+            class="tab stempel_messages {% if STEMPEL_NOTIFICATIONS_COUNT > 0 %}non-zero{% endif %} dropdown-container"
+            data-skip-responsive="true"
+            data-select="stempel"
+            role="menu"
+            data-responsive-index="-1">
+            <a
+                href="{{ STEMPEL_NOTIFICATION_URL }}"
+                id="stempel_messages_button"
+                class="nav-link dropdown-trigger dropdown-toggle"
+                title="Powiadomienia Stempel"
+                role="button"
+                aria-haspopup="true">
+                <svg
+                    viewBox="0 0 512 512"
+                    height="20"
+                    width="20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M369.237 105.372c20.245 0 35.187 6.615 44.82 19.84 9.634 13.224 14.453 31.76 14.453 55.596 0 11.758-1.96 32.003-5.879 60.74-4.244 26.778-6.368 47.188-6.368 61.23 0 8.491 2.449 12.735 7.346 12.735 8.492 0 16.33-12.9 23.515-38.696l26.942 7.839c-2.284 10.776-6.614 22.04-12.982 33.798-6.368 11.758-14.78 21.799-25.232 30.122-10.451 8.324-22.534 12.49-36.243 12.49-17.308 0-29.309-4.573-36.005-13.718-6.696-9.145-10.078-23.022-10.078-41.637 0-14.695 2.285-39.677 6.857-74.95l3.184-28.655c1.47-13.55 2.202-23.926 2.202-31.104 0-7.51-.978-12.817-2.937-15.919-1.96-3.102-5.55-4.655-10.776-4.655-9.47 0-19.35 9.063-29.637 27.185-10.287 18.122-18.857 40.413-25.755 66.862-6.898 26.449-10.287 50.942-10.287 73.475 0 12.736.485 25.307 1.47 37.718h-63.192c-.978-9.145-1.47-20.081-1.47-32.82 0-19.268 1.06-39.514 3.183-60.74l3.673-36.737c2.938-26.453 4.405-44.574 4.405-54.372 0-7.51-1.06-12.818-3.184-15.92-2.124-3.102-5.636-4.654-10.534-4.654-9.47 0-19.596 9.305-30.368 27.92-10.772 18.614-19.756 41.308-26.942 68.082-7.185 26.774-10.776 51.435-10.776 73.965 0 7.838.486 19.596 1.471 35.272H91.495c-.978-9.144-1.47-16.983-1.47-23.515 0-10.451 1.142-25.755 3.434-45.799l7.353-59.027 3.919-32.085c1.96-15.513 2.937-26.042 2.937-31.596 0-8.492-2.284-12.736-6.856-12.736-8.492 0-16.33 12.9-23.516 38.696l-26.941-7.839c4.244-19.596 11.51-37.228 21.798-52.901 10.287-15.674 24.896-23.516 43.84-23.516 12.081 0 21.962 3.434 29.636 10.287 7.674 6.853 11.511 18.29 11.511 34.288 0 6.203-.373 12-1.224 17.394l-1.717 12h.485c10.451-27.106 23.187-46.21 38.207-57.31 15.02-11.1 30.697-16.655 47.023-16.655 15.677 0 27.595 4.897 35.758 14.695 8.163 9.798 12.243 23.676 12.243 41.637 0 7.51-.325 13.389-.978 17.633h.485c19.268-49.307 46.534-73.965 81.803-73.965"></path>
+                </svg>
+            </a>
+            <strong>
+                <span class="counter">{{ STEMPEL_NOTIFICATIONS_COUNT }}</span>
+                <span class="arrow"></span>
+            </strong>
 
-    <div
-        id="stempel_dropdown_menu"
-        class="dropdown hidden dropdown-extended"
-        role="menu">
-        <div class="pointer"><div class="pointer-inner"></div></div>
-        <div class="dropdown-contents" tabindex="-1" role="dialog">
-            <div class="header">
-                <span>Stempel</span>
-                <span class="header_settings">
-                    <a href="{{ STEMPEL_CHAT_URL }}">Czaty</a>
-                </span>
-            </div>
-            <ul>
-                {% for notification in STEMPEL_NOTIFICATIONS %}
-                    <li class="dropdown-notification stempel-notification">
-                        <a class="notification-block" href="{{ notification.URL }}" target="_blank">
-                            {{ notification.AVATAR }}			
-                            <div class="notification_text">
-                                <p class="notification-title">
-                                    {{ notification.FORMATTED_TITLE }}
-                                </p>
-                                <p class="notification-reference">
-                                    {{ notification.REFERENCE }}
-                                </p>																	
-                                <div class="notify-footer">
-                                    <div class="country">
-                                        <img class="flag_global" 
-                                            style="height: 14px !important;" 
-                                            src="{{ notification.COUNTRY_FLAG }}"
-                                            alt="{{ notification.COUNTRY_NAME }}">
-                                        <span>
-                                            {{ notification.COUNTRY_NAME }}
-                                        </span>
+            <div
+                id="stempel_dropdown_menu"
+                class="dropdown hidden dropdown-extended"
+                role="menu">
+                <div class="pointer"><div class="pointer-inner"></div></div>
+                <div class="dropdown-contents" tabindex="-1" role="dialog">
+                    <div class="header">
+                        <span>Stempel</span>
+                        <span class="header_settings">
+                            <a href="{{ STEMPEL_CHAT_URL }}">Czaty</a>
+                        </span>
+                    </div>
+                    <ul>
+                        {% for notification in STEMPEL_NOTIFICATIONS %}
+                            <li class="dropdown-notification stempel-notification">
+                                <a class="notification-block" href="{{ notification.URL }}" target="_blank">
+                                    {{ notification.AVATAR }}			
+                                    <div class="notification_text">
+                                        <p class="notification-title">
+                                            {{ notification.FORMATTED_TITLE }}
+                                        </p>
+                                        <p class="notification-reference">
+                                            {{ notification.REFERENCE }}
+                                        </p>																	
+                                        <div class="notify-footer">
+                                            <div class="country">
+                                                <img class="flag_global" 
+                                                    style="height: 14px !important;" 
+                                                    src="{{ notification.COUNTRY_FLAG }}"
+                                                    alt="{{ notification.COUNTRY_NAME }}">
+                                                <span>
+                                                    {{ notification.COUNTRY_NAME }}
+                                                </span>
+                                            </div>
+                                            <div class="stempel-notification-time" data-timestamp="{{ notification.TIMESTAMP }}">
+                                                {{ notification.TIMESTAMP|date("Y-m-d H:i") }}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="stempel-notification-time" data-timestamp="{{ notification.TIMESTAMP }}">
-                                        {{ notification.TIMESTAMP|date("Y-m-d H:i") }}
-                                    </div>
-                                </div>
-                            </div>
-					    </a>									
-                    </li>
-                {% else %}
-                    <li class="notification-none">
-                        <a href="#">Nie masz powiadomień</a>
-                    </li>
-                {% endfor %}
-            </ul>
-            <div class="footer">
-                <a href="{{ STEMPEL_NOTIFICATION_URL }}">
-                    Zobacz wszystkie
-                </a>
+                                </a>									
+                            </li>
+                        {% else %}
+                            <li class="notification-none">
+                                <a href="#">Nie masz powiadomień</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="footer">
+                        <a href="{{ STEMPEL_NOTIFICATION_URL }}">
+                            Zobacz wszystkie
+                        </a>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</li>
-
+        </li>
+    {% elseif STEMPEL_VERIFICATION_LINK %}
+        <li
+            id="stempel_dropdown"
+            class="tab stempel_messages"
+            data-skip-responsive="true"
+            data-select="stempel"
+            role="menu"
+            data-responsive-index="-1">
+            <a
+                href="{STEMPEL_NOTIFICATION_URL}"
+                id="stempel_messages_button"
+                class="nav-link"
+                title="Powiadomienia Stempel"
+                role="button"
+                aria-haspopup="true">
+                <svg
+                    viewBox="0 0 512 512"
+                    height="20"
+                    width="20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M369.237 105.372c20.245 0 35.187 6.615 44.82 19.84 9.634 13.224 14.453 31.76 14.453 55.596 0 11.758-1.96 32.003-5.879 60.74-4.244 26.778-6.368 47.188-6.368 61.23 0 8.491 2.449 12.735 7.346 12.735 8.492 0 16.33-12.9 23.515-38.696l26.942 7.839c-2.284 10.776-6.614 22.04-12.982 33.798-6.368 11.758-14.78 21.799-25.232 30.122-10.451 8.324-22.534 12.49-36.243 12.49-17.308 0-29.309-4.573-36.005-13.718-6.696-9.145-10.078-23.022-10.078-41.637 0-14.695 2.285-39.677 6.857-74.95l3.184-28.655c1.47-13.55 2.202-23.926 2.202-31.104 0-7.51-.978-12.817-2.937-15.919-1.96-3.102-5.55-4.655-10.776-4.655-9.47 0-19.35 9.063-29.637 27.185-10.287 18.122-18.857 40.413-25.755 66.862-6.898 26.449-10.287 50.942-10.287 73.475 0 12.736.485 25.307 1.47 37.718h-63.192c-.978-9.145-1.47-20.081-1.47-32.82 0-19.268 1.06-39.514 3.183-60.74l3.673-36.737c2.938-26.453 4.405-44.574 4.405-54.372 0-7.51-1.06-12.818-3.184-15.92-2.124-3.102-5.636-4.654-10.534-4.654-9.47 0-19.596 9.305-30.368 27.92-10.772 18.614-19.756 41.308-26.942 68.082-7.185 26.774-10.776 51.435-10.776 73.965 0 7.838.486 19.596 1.471 35.272H91.495c-.978-9.144-1.47-16.983-1.47-23.515 0-10.451 1.142-25.755 3.434-45.799l7.353-59.027 3.919-32.085c1.96-15.513 2.937-26.042 2.937-31.596 0-8.492-2.284-12.736-6.856-12.736-8.492 0-16.33 12.9-23.516 38.696l-26.941-7.839c4.244-19.596 11.51-37.228 21.798-52.901 10.287-15.674 24.896-23.516 43.84-23.516 12.081 0 21.962 3.434 29.636 10.287 7.674 6.853 11.511 18.29 11.511 34.288 0 6.203-.373 12-1.224 17.394l-1.717 12h.485c10.451-27.106 23.187-46.21 38.207-57.31 15.02-11.1 30.697-16.655 47.023-16.655 15.677 0 27.595 4.897 35.758 14.695 8.163 9.798 12.243 23.676 12.243 41.637 0 7.51-.325 13.389-.978 17.633h.485c19.268-49.307 46.534-73.965 81.803-73.965"></path>
+                </svg>
+            </a>
+        </li>
+    {% endif %}
 <style>
     .navbar .nav-tabs .stempel_messages .nav-link {
         position: relative;

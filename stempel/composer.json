@@ -1,11 +1,27 @@
 {
     "name": "anszlus/stempel",
     "type": "phpbb-extension",
-    "description": "Dodaje odnośnik do profilu oraz wyświetla powiadomienie z systemu MUK w Stemplu.",
-    "homepage": "https://vnacja.pl",
-    "version": "0.0.6",
-    "time": "2025-09-02",
-    "keywords": ["phpbb", "extension", "post"],
+    "description": "Rozszerzenie integruje forum phpBB z ekosystemem Stempla, umożliwiając powiązanie profilu użytkownika z systemem Stempel. Dodaje odnośnik do zweryfikowanego profilu, wyświetla powiadomienia z innych państw mikroświata oraz udostępnia formularz weryfikacji użytkownika.",
+    "homepage": "https://forum.leocja.org/viewtopic.php?t=1964",
+    "version": "1.0.0",
+    "time": "2025-09-08",
+    "keywords": [
+        "phpbb",
+        "extension",
+        "mikronacja",
+        "mikronacje",
+        "vnacja",
+        "stempel",
+        "paszport",
+        "profil",
+        "weryfikacja",
+        "MUK",
+        "ISM",
+        "Nowiny",
+        "forum",
+        "integracja",
+        "leocja"
+    ],
     "license": "GPL-2.0-only",
     "authors": [
         {

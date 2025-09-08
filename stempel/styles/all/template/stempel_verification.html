@@ -1,0 +1,68 @@
+<!-- INCLUDE overall_header.html -->
+
+
+<h2 style="margin-bottom: .5rem;">Stempel - Paszport Polskich Mikronacji</h2>
+
+<main>
+    <form method="post" action="{S_FORM_ACTION}">
+        <div class="panel">
+            <div class="inner">
+                <h3>Formularz weryfikacji</h3>
+
+                <fieldset>
+                    <dl>
+                        <dt>
+                          <label for="ccn3">Identyfikator ccn3 kraju w systemie</label><br />
+                          <span>System automatycznie przypisuje kod kraju, który jest zdefinionany przez aktualne forum.</span>
+                        </dt>
+                        <dd>
+                            <input 
+                                type="number" 
+                                name="ccn3" 
+                                id="ccn3" 
+                                value="{S_CCN3}"
+                                disabled />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>
+                          <label for="user-id">Twoje ID na forum</label><br />
+                          <span>System automatycznie przypisuje ID konta, na którym jesteś aktualnie zalogowany.</span>
+                        </dt>
+                        <dd>
+                            <input 
+                                type="number" 
+                                name="user-id" 
+                                id="user-id" 
+                                value="{S_USER_ID}"
+                                disabled />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>
+                          <label for="verify-code">Kod weryfikacyjny</label><br />
+                          <span>Unikalny kod należy pozyskać ze strony <a href="https://stempel.org.pl/weryfikacja" target="_blank">weryfikacji stempel</a>, na której należy odszukać państwo, w ktorym się weryfikujesz.</span>
+                        </dt>
+                        <dd>
+                            <input type="text" name="verify-code" id="verify-code" placeholder="S-XXXXXXXX" />
+                        </dd>
+                    </dl>
+                </fieldset>
+                
+            </div>
+        </div>
+        <div class="panel">
+            <div class="inner">  
+                <fieldset class="submit-buttons">      
+                    <input
+                        type="submit"
+                        name="submit"
+                        value="Wyślij"
+                        class="button1" />
+                </fieldset>
+            </div>
+        </div>
+    </form>
+</main>
+
+<!-- INCLUDE overall_footer.html -->

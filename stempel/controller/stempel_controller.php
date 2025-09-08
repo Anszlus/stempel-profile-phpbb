@@ -7,6 +7,9 @@ class stempel_controller
     /** @var \phpbb\config\config */
     protected $config;
 
+    /** @var \phpbb\user */
+    protected $user;
+
     /** @var \phpbb\controller\helper */
     protected $helper;
 
@@ -19,22 +22,34 @@ class stempel_controller
     /** @var \phpbb\notification\manager */
     protected $notifications;
 
+    /** @var \phpbb\template\template */
+    protected $template;
+
     protected $table_prefix;
+
+    /** @var \anszlus\stempel\service\stempel_service */
+    protected $stempel_service;
 
     public function __construct(
         \phpbb\config\config $config,
+        \phpbb\user $user,
         \phpbb\controller\helper $helper,
         \phpbb\request\request_interface $request,
         \phpbb\db\driver\driver_interface $db,
         \phpbb\notification\manager $notifications,
-        $table_prefix
+        \phpbb\template\template $template,
+        $table_prefix,
+        \anszlus\stempel\service\stempel_service $stempel_service
     ) {
         $this->config = $config;
+        $this->user = $user;
         $this->helper = $helper;
         $this->request = $request;
         $this->db = $db;
         $this->notifications = $notifications;
+        $this->template = $template;
         $this->table_prefix = $table_prefix;
+        $this->stempel_service = $stempel_service;
     }
 
     // Zwraca dane jako json
@@ -54,7 +69,7 @@ class stempel_controller
 
         $data_to_encode = json_encode($secret_data);
 
-        $encoded_data = $this->muk_encode($data_to_encode, $secret_key);
+        $encoded_data = $this->stempel_service->mukEncode($data_to_encode, $secret_key);
         echo $encoded_data;
         exit();
     }
@@ -83,7 +98,7 @@ class stempel_controller
         }
 
         // Sprawdzam poprawność daty
-        if (!$this->checkValidDate($data)) {
+        if (!$this->stempel_service->checkValidDate($data)) {
             $result_data['wynik'] = 'BLEDNA_DATA' . $data;
             $this->json_response($result_data);
         }
@@ -252,17 +267,74 @@ class stempel_controller
         $this->muk_response($return_data, $secret_key);
     }
 
-    private function muk_encode($text, $secret_key) {
-        $ivlen = openssl_cipher_iv_length('aes-256-cbc');
-        $iv = openssl_random_pseudo_bytes($ivlen);
-        $szyfrowany_tekst = openssl_encrypt($text, 'aes-256-cbc', $secret_key, 0, $iv);
-        $szyfrowana_informacja = base64_encode($iv . $szyfrowany_tekst);
-        return $szyfrowana_informacja;
-    }
-    
-    // Sprawdza poprawność daty
-    public function checkValidDate($date) {
-        $d = \DateTime::createFromFormat('Y-m-d', $date);
-        return $d && $d->format('Y-m-d') == $date;
+    public function stempel_verification() {
+        $verification_api_key = $this->config['anszlus_stempel_verification_api_key'];
+        if(!$verification_api_key) {
+            trigger_error("Weryfikacja poprzez API nie została włączona przez administratora forum.");
+        }
+
+        $user_id = $this->user->data['user_id'];
+        if($user_id <= 1) {
+            trigger_error("Zaloguj się, aby uzyskać dostęp do tej strony.");
+        }
+
+        // Aktualizujemy zweryfikowanych użytkowników, gdyby mąż zaufania zweryfikował
+        $this->stempel_service->checkNewVerifiedStempelUsers(true);
+
+        $stempel_id = $this->stempel_service->getStempelIdByUserId($user_id);
+        if ($stempel_id) {
+            trigger_error("Twój paszport jest już zweryfikowany. <a href='https://stempel.org.pl/paszport/$stempel_id' target='_blank'>Link do paszportu</a>");
+        }
+
+        $stempel_country_ccn3 = $this->config['anszlus_stempel_country_id'];
+        if(!$stempel_country_ccn3) {
+            trigger_error("Administrator forum, nie skonfigurował Identyfikatora kraju");
+        }
+
+        $submitted = $this->request->is_set_post('submit');
+        // Wysłano formularz, więc sprawdzamy api
+        if ($submitted) {
+            $verifyCode = $this->request->variable('verify-code', '', true);
+            
+            $verification_api_url = "https://stempel.org.pl/api/weryfikacja0.php?kod=$verifyCode&klucz=$verification_api_key&forum=$user_id";
+
+            // pobranie odpowiedzi API
+            $json = @file_get_contents($verification_api_url);
+
+            if ($json === false) {
+                trigger_error('Nie udało się połączyć z API Stempel.');
+            }
+
+            $data = json_decode($json, true);
+
+            if ($data === null) {
+                trigger_error('Błąd dekodowania danych JSON.');
+            }
+
+            // sprawdzenie kodu błędu
+            if ((int) $data['blad']['kod'] !== 200) {
+                $error_msg = $data['blad']['komunikat'] ?? 'Nieznany błąd';
+                trigger_error('Weryfikacja nieudana: ' . $error_msg);
+            }
+
+            // jeśli kod == 200, to weryfikacja poprawna
+            $your_passport = $data['paszport'];
+
+            // Aktualizujemy zweryfikowanych użytkowników
+            $this->stempel_service->checkNewVerifiedStempelUsers(true);
+
+            trigger_error('Weryfikacja przebiegła pomyślnie, twój numer paszportu stempel to <b>' . $your_passport . '</b>. Jeżeli uważasz, że dane są nieprawidłowe, zgłoś to.');
+        }
+
+        // Przekazanie zmiennych do szablonu
+        $this->template->assign_vars([
+            'S_FORM_ACTION' => $this->helper->route('anszlus_stempel_verification'),
+            'S_USER_ID' => $user_id,
+            'S_CCN3' => $stempel_country_ccn3
+        ]);
+
+        // Renderowanie strony wewnątrz szablonu phpBB
+        return $this->helper->render('stempel_verification.html', 'Formularz weryfikacji');
+
     }
 }

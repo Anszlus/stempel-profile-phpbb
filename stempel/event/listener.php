@@ -33,9 +33,6 @@ class listener implements EventSubscriberInterface
     /** @var \phpbb\request\request_interface */
     protected $request;
 
-    /** @var \phpbb\controller\helper */
-    protected $controller_helper;
-
     /** @var \phpbb\language\language */
     protected $language;
 
@@ -45,28 +42,14 @@ class listener implements EventSubscriberInterface
     /** @var string phpEx */
     protected $php_ext;
 
-    /** @var \gfksx\thanksforposts\core\helper */
+    /** @var \phpbb\controller\helper */
     protected $helper;
 
     protected $stempel_table;
 
-    /**
-     * Constructor
-     *
-     * @param \phpbb\config\config                 $config                Config object
-     * @param \phpbb\db\driver\driver_interface    $db                    DBAL object
-     * @param \phpbb\auth\auth                     $auth                  Auth object
-     * @param \phpbb\template\template             $template              Template object
-     * @param \phpbb\user                          $user                  User object
-     * @param \phpbb\cache\driver\driver_interface $cache                 Cache driver object
-     * @param \phpbb\request\request_interface     $request               Request object
-     * @param \phpbb\controller\helper             $controller_helper     Controller helper object
-     * @param \phpbb\language\language             $language              Language object
-     * @param string                               $phpbb_root_path       phpbb_root_path
-     * @param string                               $php_ext               phpEx
-     * @param rxu\PostsMerging\core\helper         $helper                The extension helper object
-     * @access public
-     */
+    /** @var \anszlus\stempel\service\stempel_service */
+    protected $stempel_service;
+
     public function __construct(
         \phpbb\config\config $config,
         \phpbb\db\driver\driver_interface $db,
@@ -77,7 +60,8 @@ class listener implements EventSubscriberInterface
         \phpbb\request\request_interface $request,
         \phpbb\controller\helper $controller_helper,
         \phpbb\language\language $language,
-        $phpbb_root_path, $php_ext, $stempel_table
+        $phpbb_root_path, $php_ext, $stempel_table,
+        \anszlus\stempel\service\stempel_service $stempel_service
     ) {
         global $phpbb_container;
 
@@ -88,23 +72,20 @@ class listener implements EventSubscriberInterface
         $this->user = $user;
         $this->cache = $cache;
         $this->request = $request;
-        $this->controller_helper = $controller_helper;
+        $this->helper = $controller_helper;
         $this->language = $language;
         $this->phpbb_root_path = $phpbb_root_path;
         $this->php_ext = $php_ext;
         $this->stempel_table = $stempel_table;
+        $this->stempel_service = $stempel_service;
     }
 
     public function viewtopic_modify_postrow($event)
     {
-        $row = $event['row'];
         $postrow = $event['post_row'];
 
         if (!isset($this->stempel_users[$postrow['POSTER_ID']])) {
-            $sql = 'SELECT `stempel_id` FROM ' . $this->stempel_table . ' WHERE user_id = ' . $postrow['POSTER_ID'];
-            $result = $this->db->sql_query($sql);
-            $stempel_id = $this->db->sql_fetchfield('stempel_id');
-            $this->db->sql_freeresult($result);
+            $stempel_id = $this->stempel_service->getStempelIdByUserId($postrow['POSTER_ID']);
         } else {
             $stempel_id = $this->stempel_users[$postrow['POSTER_ID']];
         }
@@ -134,10 +115,7 @@ class listener implements EventSubscriberInterface
         $member = $event['member'];
         $stempel_id = 0;
         if (!isset($this->stempel_users[$member['user_id']])) {
-            $sql = 'SELECT `stempel_id` FROM ' . $this->stempel_table . ' WHERE user_id = ' . $member['user_id'];
-            $result = $this->db->sql_query($sql);
-            $stempel_id = $this->db->sql_fetchfield('stempel_id');
-            $this->db->sql_freeresult($result);
+            $stempel_id = $this->stempel_service->getStempelIdByUserId($member['user_id']);
         } else {
             $stempel_id = $this->stempel_users[$member['user_id']];
         }
@@ -152,86 +130,12 @@ class listener implements EventSubscriberInterface
 
     public function check_new_stempel_users($event)
     {
-        // sprawdzam czy aktywne
-        if(!$this->config['anszlus_stempel_enabled']) {
-            return false;
-        }
-
-        // sprawdzam date
-        $last_check = $this->config['anszlus_stempel_users_updated_at'];
-        $toilet_time = 10800; // Czas co jaki ma sprawdzać
-        $now = time();
-        if(($last_check + $toilet_time) > $now) {
-            return false;
-        }
-
-        // sprawdzam sid
-        $stempel_country_ccn3 = $this->config['anszlus_stempel_country_id'];
-        if(!$stempel_country_ccn3)
-        {
-            return false;
-        }
-        
-        // pobieram dane
-        $status = $this->updateUsersStempelId($stempel_country_ccn3);
-
-        if(!$status)
-        {
-            return false;
-        }
-
-        $this->config->set('anszlus_stempel_users_updated_at', $now);
-    }
-
-    private function updateUsersStempelId($id)
-    {
-        /** @var string $thanks_table _thanks database table */
-        $stempel_table = $this->stempel_table;
-
-        $url = 'https://stempel.org.pl/api/weryfikacje0.php?kraj=' . $id;
-
-        // Pobierz zawartość JSON z URL
-        $jsonData = file_get_contents($url);
-
-        // Jeśli pobranie danych zakończyło się błędem
-        if ($jsonData == false) {
-            return false;
-        }
-
-        // usuwamy stare wpisy
-        $deleteSql = 'DELETE FROM ' . $stempel_table . ' WHERE 1';
-        $deleteResult = $this->db->sql_query($deleteSql);
-
-        // Dekoduj dane JSON na tablicę lub obiekt PHP
-        $data = json_decode($jsonData, true); // true oznacza dekodowanie do tablicy asocjacyjnej
-
-        // Sprawdź, czy dekodowanie się nie powiodło
-        if ($data == null) {
-            // 'Błąd dekodowania danych JSON.';
-            return false;
-        }
-
-        if ($data['blad']['kod'] !== 200) {
-            // Błędne id kraju
-            return false;
-        }
-
-        $insertData = [];
-        foreach ($data['forum'] as $forumID => $stempelID) {
-            $insertData[] = '(' . $forumID . ', ' . $stempelID . ')';
-        }
-
-        // dodajemy nowe
-        $insertData = implode(', ', $insertData);
-        $insertSql = 'INSERT INTO ' . $stempel_table . ' (`user_id`, `stempel_id`) VALUES ' . $insertData;
-        $insertResult = $this->db->sql_query($insertSql);
-
-        return true;
+        // Sprawdzam czy można już pobrac nowych
+        $this->stempel_service->checkNewVerifiedStempelUsers();
     }
 
     public function add_stempel_navlink($event)
     {
-
         if(!$this->config['anszlus_stempel_notification_enabled'] || empty($this->config['anszlus_stempel_notification_api_key'])) {
             return;
         }
@@ -248,17 +152,14 @@ class listener implements EventSubscriberInterface
 
         // Pobieram stempel_id dla użytkownika
         if (!isset($this->stempel_users[$user_id])) {
-            $sql = 'SELECT stempel_id FROM ' . $this->stempel_table . ' WHERE user_id = ' . (int)$user_id;
-            $result = $this->db->sql_query($sql);
-            $stempel_id = $this->db->sql_fetchfield('stempel_id');
-            $this->db->sql_freeresult($result);
-            $this->stempel_users[$user_id] = $stempel_id;
+            $stempel_id = $this->stempel_service->getStempelIdByUserId($user_id);
         } else {
             $stempel_id = $this->stempel_users[$user_id];
         }
 
         // Pobieram dane z API
-        
+        $verification_link = false;
+        $navigation_url = 'https://stempel.org.pl/powiadomienia/';
         if($stempel_id) {
             // Klucz cache zależny od usera
             $cache_key = 'stempel_notifications_' . $user_id;
@@ -282,7 +183,7 @@ class listener implements EventSubscriberInterface
                 // Dekodowanie tylko jeśli wszystko OK
                 if ($jsonData !== false && $httpCode === 200) {
                     $notifications = (array) json_decode(
-                        $this->muk_decode($jsonData, $this->config['anszlus_stempel_notification_api_key']),
+                        $this->stempel_service->mukDecode($jsonData, $this->config['anszlus_stempel_notification_api_key']),
                         true
                     );
                 } else {
@@ -293,26 +194,27 @@ class listener implements EventSubscriberInterface
                 // Zapisz do cache na np. 10 sekund
                 $this->cache->put($cache_key, $notifications, 10);
             }
+        } else {
+            // Niezweryfikowany, więc sprawdzmy czy jest user secret api key do weryfikacji
+            $verification_api_key = $this->config['anszlus_stempel_verification_api_key'];
+
+            if($verification_api_key) {
+                $verification_link = true;
+                $navigation_url = $this->helper->route('anszlus_stempel_verification');
+
+            }            
         }
 
         // Przekaż zmienne do szablonu
         $this->template->assign_vars([
+            'STEMPEL_USER_VERIFIED' => $stempel_id,
+            'STEMPEL_VERIFICATION_LINK' => $verification_link,
             'STEMPEL_NOTIFICATION_ENABLED' => $this->config['anszlus_stempel_notification_enabled'],
-            'STEMPEL_NOTIFICATION_URL' => 'https://stempel.org.pl/powiadomienia/',
+            'STEMPEL_NOTIFICATION_URL' => $navigation_url,
             'STEMPEL_CHAT_URL' => 'https://stempel.org.pl/chat/',
             'STEMPEL_NOTIFICATIONS' => $notifications,
             'STEMPEL_NOTIFICATIONS_COUNT' => ($notifications) ? count($notifications) : 0
         ]);
-    }
-
-    private function muk_decode($coded_info, $secret_key)
-    {
-        $coded_info = base64_decode($coded_info);
-        $ivlen = openssl_cipher_iv_length('aes-256-cbc');
-        $iv = substr($coded_info, 0, $ivlen);
-        $szyfrowany_tekst = substr($coded_info, $ivlen);
-        $tekst = openssl_decrypt($szyfrowany_tekst, 'aes-256-cbc', $secret_key, 0, $iv);
-        return $tekst;
     }
 
 }

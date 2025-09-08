@@ -2,12 +2,12 @@
 
 namespace anszlus\stempel\migrations;
 
-class v_0_0_6 extends \phpbb\db\migration\migration
+class v_1_0_0 extends \phpbb\db\migration\migration
 {
     public function effectively_installed()
     {
         // Sprawdza, czy nowa konfiguracja jest już zainstalowana
-        return isset($this->config['anszlus_stempel_notification_api_key']) && isset($this->config['anszlus_stempel_notification_enabled']);
+        return isset($this->config['anszlus_stempel_verification_api_key']) && isset($this->config['anszlus_stempel_notification_api_key']) && isset($this->config['anszlus_stempel_notification_enabled']);
     }
 
     static public function depends_on()
@@ -35,6 +35,7 @@ class v_0_0_6 extends \phpbb\db\migration\migration
             // Dodajemy nowy wpis do tabeli config
             ['config.add', ['anszlus_stempel_notification_enabled', 0]],
             ['config.add', ['anszlus_stempel_notification_api_key', ""]],
+            ['config.add', ['anszlus_stempel_verification_api_key', ""]],
         ];
     }
 }

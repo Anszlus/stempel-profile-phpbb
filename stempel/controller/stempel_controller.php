@@ -30,6 +30,9 @@ class stempel_controller
     /** @var \anszlus\stempel\service\stempel_service */
     protected $stempel_service;
 
+    /** @var \phpbb\extension\manager $extension_manager */
+    protected $extension_manager;
+
     public function __construct(
         \phpbb\config\config $config,
         \phpbb\user $user,
@@ -39,7 +42,8 @@ class stempel_controller
         \phpbb\notification\manager $notifications,
         \phpbb\template\template $template,
         $table_prefix,
-        \anszlus\stempel\service\stempel_service $stempel_service
+        \anszlus\stempel\service\stempel_service $stempel_service,
+        \phpbb\extension\manager $extension_manager
     ) {
         $this->config = $config;
         $this->user = $user;
@@ -50,6 +54,7 @@ class stempel_controller
         $this->template = $template;
         $this->table_prefix = $table_prefix;
         $this->stempel_service = $stempel_service;
+        $this->extension_manager = $extension_manager;
     }
 
     // Zwraca dane jako json
@@ -233,7 +238,7 @@ class stempel_controller
      */
     public function integracja_muk()
     {
-        $secret_key = $this->config['anszlus_stempel_notification_enabled'] ?? '';
+        $secret_key = $this->config['anszlus_stempel_notification_api_key'] ?? '';
         // Oczekuję id użytkownika na forum
         $uid = (int) $this->request->variable('uid', 0);
 
@@ -336,5 +341,15 @@ class stempel_controller
         // Renderowanie strony wewnątrz szablonu phpBB
         return $this->helper->render('stempel_verification.html', 'Formularz weryfikacji');
 
+    }
+
+    public function version()
+    {
+        // Pobierz informacje o rozszerzeniu
+        $meta = $this->extension_manager->get_metadata('vendor/stempel');
+
+        $version = isset($meta['version']) ? $meta['version'] : 'unknown';
+
+        return $this->helper->response("Stempel version: " . $version);
     }
 }

@@ -32,6 +32,7 @@ services:
             - '@template'
             - '%core.table_prefix%'
             - '@anszlus.stempel.service'
+            - '@ext.manager'
     
     anszlus.stempel.service:
         class: anszlus\stempel\service\stempel_service

@@ -42,8 +42,7 @@ class stempel_controller
         \phpbb\notification\manager $notifications,
         \phpbb\template\template $template,
         $table_prefix,
-        \anszlus\stempel\service\stempel_service $stempel_service,
-        \phpbb\extension\manager $extension_manager
+        \anszlus\stempel\service\stempel_service $stempel_service
     ) {
         $this->config = $config;
         $this->user = $user;
@@ -54,7 +53,6 @@ class stempel_controller
         $this->template = $template;
         $this->table_prefix = $table_prefix;
         $this->stempel_service = $stempel_service;
-        $this->extension_manager = $extension_manager;
     }
 
     // Zwraca dane jako json
@@ -341,15 +339,5 @@ class stempel_controller
         // Renderowanie strony wewnątrz szablonu phpBB
         return $this->helper->render('stempel_verification.html', 'Formularz weryfikacji');
 
-    }
-
-    public function version()
-    {
-        // Pobierz informacje o rozszerzeniu
-        $meta = $this->extension_manager->get_metadata('vendor/stempel');
-
-        $version = isset($meta['version']) ? $meta['version'] : 'unknown';
-
-        return $this->helper->response("Stempel version: " . $version);
     }
 }

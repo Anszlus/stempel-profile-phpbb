@@ -17,8 +17,3 @@ anszlus_stempel_verification:
     path: /stempel/weryfikacja
     defaults:
         _controller: anszlus.stempel.controller.stempel_controller:stempel_verification
-
-anszlus_stempel_version:
-    path: /stempel/version
-    defaults:
-        _controller: anszlus.stempel.controller.stempel_controller:version

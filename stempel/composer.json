@@ -3,8 +3,8 @@
     "type": "phpbb-extension",
     "description": "Rozszerzenie integruje forum phpBB z ekosystemem Stempla, umożliwiając powiązanie profilu użytkownika z systemem Stempel. Dodaje odnośnik do zweryfikowanego profilu, wyświetla powiadomienia z innych państw mikroświata oraz udostępnia formularz weryfikacji użytkownika.",
     "homepage": "https://forum.leocja.org/viewtopic.php?t=1964",
-    "version": "1.0.1",
-    "time": "2025-09-08",
+    "version": "1.0.2",
+    "time": "2025-09-13",
     "keywords": [
         "phpbb",
         "extension",

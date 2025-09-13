@@ -10,6 +10,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class listener implements EventSubscriberInterface
 {
 
+    public $notification_cache_time = 5;
     protected $stempel_users = [];
 
     /** @var \phpbb\config\config */
@@ -191,8 +192,8 @@ class listener implements EventSubscriberInterface
                 }
 
 
-                // Zapisz do cache na np. 10 sekund
-                $this->cache->put($cache_key, $notifications, 10);
+                // Zapisz do cache
+                $this->cache->put($cache_key, $notifications, $this->notification_cache_time);
             }
         } else {
             // Niezweryfikowany, więc sprawdzmy czy jest user secret api key do weryfikacji

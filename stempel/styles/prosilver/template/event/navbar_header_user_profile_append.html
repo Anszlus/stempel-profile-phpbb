@@ -212,7 +212,7 @@
       fetch(mark_as_read_url).then(response => {
         const li = el.closest("li");
         if (li) {
-          li.style.display = 'none';
+          li.remove();
         }
       });
     }
